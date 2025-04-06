@@ -27,25 +27,34 @@ function Home() {
   };
 
   // Create a new post
-  const handleCreatePost = async (title, description) => {
+  const handleCreatePost = async (formData) => {
     try {
-      const response = await request('/posts/', 'POST', { title, description });
+      const response = await fetch('http://127.0.0.1:8000/api/posts/', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData, // Send FormData directly
+      });
+      
       if (response.ok) {
-        // Refresh the posts list
-        fetchPosts();
+        fetchPosts(); // Refresh the posts list
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to create post:', errorData);
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error creating post:', error);
     }
   };
 
   // Update an existing post
-  const handleUpdatePost = async (postId, updatedTitle, updatedDescription) => {
+  const handleUpdatePost = async (postId, formData) => {
     try {
-      const response = await request(`/posts/${postId}/`, 'PUT', {
-        title: updatedTitle,
-        description: updatedDescription
+      const response = await fetch(`http://127.0.0.1:8000/api/posts/${postId}/`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData,
       });
+      
       if (response.ok) {
         fetchPosts();
         setEditingPost(null);
@@ -80,23 +89,68 @@ function Home() {
         posts.map((post) => (
           <div 
             key={post.id} 
-            style={{ marginTop: '1rem', border: '1px solid #ccc', padding: '1rem' }}
+            style={{ 
+              marginTop: '1rem', 
+              border: '1px solid #ccc', 
+              padding: '1rem',
+              borderRadius: '8px',
+              backgroundColor: '#fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
           >
             {editingPost === post.id ? (
               // If we're editing this post, show the form with existing data
               <PostForm
                 initialTitle={post.title}
                 initialDescription={post.description}
-                onSubmit={(title, description) => handleUpdatePost(post.id, title, description)}
+                onSubmit={(formData) => handleUpdatePost(post.id, formData)}
                 buttonLabel="Save Changes"
               />
             ) : (
               <>
-                <h3>{post.title}</h3>
-                <p>{post.description}</p>
-                {/* If the backend is set up for image, we could show post.image here */}
-                <button onClick={() => setEditingPost(post.id)}>Edit</button>
-                <button onClick={() => handleDeletePost(post.id)}>Delete</button>
+                <h3 style={{ marginBottom: '0.5rem' }}>{post.title}</h3>
+                <p style={{ marginBottom: '1rem' }}>{post.description}</p>
+                {post.image && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <img 
+                      src={`http://127.0.0.1:8000${post.image}`}
+                      alt={post.title}
+                      style={{ 
+                        maxWidth: '100%', 
+                        height: 'auto',
+                        borderRadius: '4px'
+                      }} 
+                    />
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    onClick={() => setEditingPost(post.id)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeletePost(post.id)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </>
             )}
           </div>

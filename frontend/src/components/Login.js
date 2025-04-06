@@ -3,37 +3,40 @@ import { useNavigate } from 'react-router-dom';
 import request from '../services/api';
 
 function Login({ setIsLoggedIn, setIsAdmin }) {
-  // State for the form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      // Send a POST request to /login/ with email + password
+      console.log('Attempting login with:', { email });
       const response = await request('/login/', 'POST', { email, password });
+      console.log('Login response:', response);
+      
       if (response.ok) {
         const data = await response.json();
-        // If successful, store the login status in state
+        console.log('Login successful, data:', data);
         setIsLoggedIn(true);
         setIsAdmin(data.is_admin);
-        // Navigate to home
         navigate('/');
       } else {
-        // If the server responded with an error
         const errorData = await response.json();
-        alert(errorData.message || 'Login failed');
+        console.error('Login failed:', errorData);
+        setError(errorData.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
-      console.error(error);
-      alert('Something went wrong.');
+      console.error('Login error:', error);
+      setError('Failed to connect to the server. Please try again later.');
     }
   };
 
   return (
     <div className="container">
       <h1>Login</h1>
+      {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
       <form onSubmit={handleLogin}>
         <div>
           <label>Email: </label>

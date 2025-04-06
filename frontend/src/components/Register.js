@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import request from '../services/api';
 
 function Register() {
-  // Local state for form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    // Prepare data to be sent in POST
+    setError('');
     const userData = {
       first_name: firstName,
       last_name: lastName,
@@ -23,23 +23,29 @@ function Register() {
     };
 
     try {
+      console.log('Attempting registration with:', { email, username });
       const response = await request('/register/', 'POST', userData);
+      console.log('Registration response:', response);
+      
       if (response.ok) {
+        console.log('Registration successful');
         alert('Registration successful! You can now login.');
         navigate('/login');
       } else {
         const errorData = await response.json();
-        alert(JSON.stringify(errorData));
+        console.error('Registration failed:', errorData);
+        setError(JSON.stringify(errorData));
       }
     } catch (error) {
-      console.error(error);
-      alert('Something went wrong.');
+      console.error('Registration error:', error);
+      setError('Failed to connect to the server. Please try again later.');
     }
   };
 
   return (
     <div className="container">
       <h1>Register</h1>
+      {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
       <form onSubmit={handleRegister}>
         <div>
           <label>First Name: </label>

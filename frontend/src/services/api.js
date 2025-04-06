@@ -12,17 +12,33 @@ const request = async (endpoint, method = "GET", body = null) => {
   const options = {
     method: method,
     credentials: "include", // Send cookies for session-based auth
-    headers: {
-      "Content-Type": "application/json",
-    },
   };
-  if (body) {
+
+  // Only add Content-Type header if body is not FormData
+  if (body && !(body instanceof FormData)) {
+    options.headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    };
     options.body = JSON.stringify(body);
+  } else if (body) {
+    options.body = body; // Send FormData as is
   }
 
-  // Make the fetch call to Django
-  const response = await fetch(`${BASE_URL}${endpoint}`, options);
-  return response;
+  console.log(`Making ${method} request to ${BASE_URL}${endpoint}`);
+  if (body) {
+    console.log('Request body:', body);
+  }
+
+  try {
+    // Make the fetch call to Django
+    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+    console.log(`Response status: ${response.status}`);
+    return response;
+  } catch (error) {
+    console.error('Network error:', error);
+    throw error;
+  }
 };
 
 export default request;

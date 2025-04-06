@@ -4,15 +4,37 @@ function PostForm({ initialTitle = '', initialDescription = '', onSubmit, button
   // We'll store title and description in local state
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
+  const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      // Create a preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
 
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Call the parent callback with the current values
-    onSubmit(title, description);
-    // Reset the fields (helpful if this is a creation form)
+    // Create FormData object to handle file upload
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    if (image) {
+      formData.append('image', image);
+    }
+    // Call the parent callback with the FormData
+    onSubmit(formData);
+    // Reset the form
     setTitle('');
     setDescription('');
+    setImage(null);
+    setPreviewUrl(null);
   };
 
   return (
@@ -34,6 +56,23 @@ function PostForm({ initialTitle = '', initialDescription = '', onSubmit, button
           rows="3"
           required
         />
+      </div>
+      <div>
+        <label>Image:</label>
+        <input 
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+        {previewUrl && (
+          <div style={{ marginTop: '1rem' }}>
+            <img 
+              src={previewUrl} 
+              alt="Preview" 
+              style={{ maxWidth: '200px', maxHeight: '200px' }} 
+            />
+          </div>
+        )}
       </div>
       <button type="submit">{buttonLabel}</button>
     </form>
